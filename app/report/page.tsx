@@ -5,16 +5,39 @@ import { useRouter } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Modal from '@/components/Modal'
-import { BASE_SUPPORTERS, PITCH_DATA, generateScores, Supporter, MetricScore, PitchData } from '@/lib/data'
+import { BASE_SUPPORTERS, generateScores, Supporter, MetricScore } from '@/lib/data'
 
 type Phase = 'loading' | 'report'
 
 const LOADING_STEPS = [
-  'RUNNING VC METRIC MODELS...',
-  'SCORING MARKET SIGNALS...',
-  'GENERATING PITCH ANALYSIS...',
+  'QUERYING STARTUP DATABASE...',
+  'SCANNING FUNDING ROUNDS...',
+  'IDENTIFYING INVESTORS...',
   'COMPOSING REPORT...',
 ]
+
+interface AnalysisData {
+  similarStartups: { name: string; category: string; status: string; country: string }[]
+  ycStartups: { name: string; batch: string; description: string; status: string }[]
+  fundingInsights: {
+    totalDeals: number
+    avgRoundSize: number
+    totalFunding: number
+    seedDeals: number
+    seriesADeals: number
+    topRound: number
+  }
+  investors: { name: string; type: string; country: string }[]
+  keywords: string[]
+  searchTerm: string
+}
+
+function formatUSD(n: number): string {
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`
+  return n > 0 ? `$${n}` : 'N/A'
+}
 
 export default function ReportPage() {
   const router = useRouter()
@@ -22,11 +45,11 @@ export default function ReportPage() {
   const [loadingStep, setLoadingStep] = useState(0)
   const [fillWidth, setFillWidth] = useState(0)
   const [idea, setIdea] = useState('')
-  const [pitch, setPitch] = useState<PitchData | null>(null)
   const [scores, setScores] = useState<MetricScore[]>([])
   const [overall, setOverall] = useState(0)
   const [supporters, setSupporters] = useState<Supporter[]>([...BASE_SUPPORTERS])
   const [modalOpen, setModalOpen] = useState(false)
+  const [data, setData] = useState<AnalysisData | null>(null)
   const hasRun = useRef(false)
 
   useEffect(() => {
@@ -36,27 +59,37 @@ export default function ReportPage() {
     const storedIdea = sessionStorage.getItem('boffo_idea') || 'Your startup idea'
     setIdea(storedIdea)
 
-    // Kick off loading bar
     setTimeout(() => setFillWidth(100), 50)
 
-    // Cycle loading text
     let step = 0
     const si = setInterval(() => {
       step++
       if (step < LOADING_STEPS.length) setLoadingStep(step)
-    }, 600)
+    }, 700)
 
-    // Resolve to report
-    setTimeout(() => {
-      clearInterval(si)
-      const generatedScores = generateScores()
-      const avg = Math.round(generatedScores.reduce((a, b) => a + b.score, 0) / generatedScores.length)
-      const pd = PITCH_DATA[Math.floor(Math.random() * PITCH_DATA.length)]
-      setScores(generatedScores)
-      setOverall(avg)
-      setPitch(pd)
-      setPhase('report')
-    }, 2600)
+    fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idea: storedIdea }),
+    })
+      .then(r => r.json())
+      .then((result: AnalysisData) => {
+        clearInterval(si)
+        const generatedScores = generateScores()
+        const avg = Math.round(generatedScores.reduce((a, b) => a + b.score, 0) / generatedScores.length)
+        setScores(generatedScores)
+        setOverall(avg)
+        setData(result)
+        setPhase('report')
+      })
+      .catch(() => {
+        clearInterval(si)
+        const generatedScores = generateScores()
+        const avg = Math.round(generatedScores.reduce((a, b) => a + b.score, 0) / generatedScores.length)
+        setScores(generatedScores)
+        setOverall(avg)
+        setPhase('report')
+      })
   }, [])
 
   function handleSupporterSuccess(supporter: Supporter) {
@@ -97,15 +130,6 @@ export default function ReportPage() {
           <div className="idea-display">IDEA: {idea.toUpperCase()}</div>
         </div>
 
-        {pitch && (
-          <div className="pitch-block">
-            <div className="pitch-idea-title">{pitch.title}</div>
-            <ul className="pitch-list">
-              {pitch.bullets.map((b, i) => <li key={i}>{b}</li>)}
-            </ul>
-          </div>
-        )}
-
         <div className="metrics-title">VC VIABILITY SCORES</div>
         <div className="metrics-grid">
           {scores.map((m, i) => (
@@ -124,10 +148,83 @@ export default function ReportPage() {
           <div className="score-info">
             <div className="score-verdict">{verdict}</div>
             <div className="score-desc">
-              Strong market pull detected across VC metrics. Founder-market fit is compelling. Real user demand signals are positive.
+              {data?.similarStartups?.length
+                ? `${data.similarStartups.length} similar companies found in our database. ${data.fundingInsights?.totalDeals || 0} funding events tracked in this space.`
+                : 'Market signal analysis complete. Review the data below.'}
             </div>
           </div>
         </div>
+
+        {data?.fundingInsights && data.fundingInsights.totalDeals > 0 && (
+          <div className="data-section">
+            <div className="section-label">FUNDING INTELLIGENCE</div>
+            <div className="funding-grid">
+              <div className="funding-stat">
+                <div className="funding-num">{data.fundingInsights.totalDeals}</div>
+                <div className="funding-label">DEALS TRACKED</div>
+              </div>
+              <div className="funding-stat">
+                <div className="funding-num">{formatUSD(data.fundingInsights.avgRoundSize)}</div>
+                <div className="funding-label">AVG ROUND SIZE</div>
+              </div>
+              <div className="funding-stat">
+                <div className="funding-num">{formatUSD(data.fundingInsights.topRound)}</div>
+                <div className="funding-label">LARGEST ROUND</div>
+              </div>
+              <div className="funding-stat">
+                <div className="funding-num">{data.fundingInsights.seedDeals}</div>
+                <div className="funding-label">SEED DEALS</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {data?.similarStartups && data.similarStartups.length > 0 && (
+          <div className="data-section">
+            <div className="section-label">SIMILAR COMPANIES IN DATABASE</div>
+            <div className="startup-list">
+              {data.similarStartups.map((s, i) => (
+                <div className="startup-row" key={i}>
+                  <div className="startup-num">{String(i + 1).padStart(2, '0')}</div>
+                  <div className="startup-info">
+                    <div className="startup-name">{s.name}</div>
+                    <div className="startup-meta">{s.category !== 'N/A' ? s.category : ''}{s.country !== 'N/A' ? ` · ${s.country}` : ''}</div>
+                  </div>
+                  <div className={`startup-status status-${s.status?.toLowerCase()}`}>{s.status}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data?.ycStartups && data.ycStartups.length > 0 && (
+          <div className="data-section">
+            <div className="section-label">Y COMBINATOR COMPANIES IN THIS SPACE</div>
+            <div className="startup-list">
+              {data.ycStartups.map((s, i) => (
+                <div className="startup-row" key={i}>
+                  <div className="startup-num">{String(i + 1).padStart(2, '0')}</div>
+                  <div className="startup-info">
+                    <div className="startup-name">{s.name}</div>
+                    {s.description && <div className="startup-meta">{s.description}</div>}
+                  </div>
+                  {s.batch && s.batch !== 'N/A' && <div className="yc-batch">{s.batch}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data?.investors && data.investors.length > 0 && (
+          <div className="data-section">
+            <div className="section-label">INVESTORS ACTIVE IN THIS SPACE</div>
+            <div className="investor-list">
+              {data.investors.map((inv, i) => (
+                <div className="investor-tag" key={i}>{inv.name}</div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="stripe-section">
           <div className="stripe-question">Will you pay for this?</div>
