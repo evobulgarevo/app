@@ -5,19 +5,37 @@ import { useRouter } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Modal from '@/components/Modal'
-import { BASE_SUPPORTERS, generateScores, Supporter, MetricScore } from '@/lib/data'
+import { BASE_SUPPORTERS, Supporter } from '@/lib/data'
 
 type Phase = 'loading' | 'report'
 
 const LOADING_STEPS = [
   'QUERYING STARTUP DATABASE...',
   'SCANNING FUNDING ROUNDS...',
-  'IDENTIFYING INVESTORS...',
+  'RUNNING YC EVALUATION FRAMEWORK...',
   'COMPOSING REPORT...',
 ]
 
+interface YCAnalysis {
+  founderScore: number
+  founderFeedback: string
+  marketScore: number
+  marketFeedback: string
+  tractionScore: number
+  tractionFeedback: string
+  speedScore: number
+  speedFeedback: string
+  ycVerdict: string
+  topStrength: string
+  topWeakness: string
+  nextStep: string
+}
+
 interface AnalysisData {
-  similarStartups: { name: string; category: string; status: string; country: string }[]
+  industry: string
+  businessModel: string
+  ycAnalysis: YCAnalysis | null
+  similarStartups: { name: string; category: string; status: string; country: string; funding: string }[]
   ycStartups: { name: string; batch: string; description: string; status: string }[]
   fundingInsights: {
     totalDeals: number
@@ -28,8 +46,6 @@ interface AnalysisData {
     topRound: number
   }
   investors: { name: string; type: string; country: string }[]
-  keywords: string[]
-  searchTerm: string
 }
 
 function formatUSD(n: number): string {
@@ -39,14 +55,28 @@ function formatUSD(n: number): string {
   return n > 0 ? `$${n}` : 'N/A'
 }
 
+function ScoreBar({ score, label, feedback }: { score: number; label: string; feedback: string }) {
+  const cls = score >= 75 ? 'high' : score >= 55 ? 'mid' : 'low'
+  return (
+    <div className="yc-score-row">
+      <div className="yc-score-header">
+        <span className="yc-score-label">{label}</span>
+        <span className={`yc-score-num ${cls}`}>{score}</span>
+      </div>
+      <div className="metric-bar-wrap">
+        <div className={`metric-bar ${cls}`} style={{ width: `${score}%` }} />
+      </div>
+      <div className="yc-score-feedback">{feedback}</div>
+    </div>
+  )
+}
+
 export default function ReportPage() {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('loading')
   const [loadingStep, setLoadingStep] = useState(0)
   const [fillWidth, setFillWidth] = useState(0)
   const [idea, setIdea] = useState('')
-  const [scores, setScores] = useState<MetricScore[]>([])
-  const [overall, setOverall] = useState(0)
   const [supporters, setSupporters] = useState<Supporter[]>([...BASE_SUPPORTERS])
   const [modalOpen, setModalOpen] = useState(false)
   const [data, setData] = useState<AnalysisData | null>(null)
@@ -57,37 +87,36 @@ export default function ReportPage() {
     hasRun.current = true
 
     const storedIdea = sessionStorage.getItem('boffo_idea') || 'Your startup idea'
+    const storedData = sessionStorage.getItem('boffo_data')
+    const parsed = storedData ? JSON.parse(storedData) : {}
     setIdea(storedIdea)
 
     setTimeout(() => setFillWidth(100), 50)
-
     let step = 0
     const si = setInterval(() => {
       step++
       if (step < LOADING_STEPS.length) setLoadingStep(step)
-    }, 700)
+    }, 900)
 
     fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idea: storedIdea }),
+      body: JSON.stringify({
+        idea: storedIdea,
+        traction: parsed.traction,
+        technical: parsed.technical,
+        team: parsed.team,
+        speed: parsed.speed,
+      }),
     })
       .then(r => r.json())
       .then((result: AnalysisData) => {
         clearInterval(si)
-        const generatedScores = generateScores()
-        const avg = Math.round(generatedScores.reduce((a, b) => a + b.score, 0) / generatedScores.length)
-        setScores(generatedScores)
-        setOverall(avg)
         setData(result)
         setPhase('report')
       })
       .catch(() => {
         clearInterval(si)
-        const generatedScores = generateScores()
-        const avg = Math.round(generatedScores.reduce((a, b) => a + b.score, 0) / generatedScores.length)
-        setScores(generatedScores)
-        setOverall(avg)
         setPhase('report')
       })
   }, [])
@@ -97,8 +126,12 @@ export default function ReportPage() {
     setModalOpen(false)
   }
 
-  const verdict =
-    overall >= 80 ? 'HIGH VIABILITY' : overall >= 65 ? 'MODERATE VIABILITY' : 'NEEDS REFINEMENT'
+  const yc = data?.ycAnalysis
+  const overallScore = yc
+    ? Math.round((yc.founderScore + yc.marketScore + yc.tractionScore + yc.speedScore) / 4)
+    : 0
+  const verdict = yc?.ycVerdict || ''
+  const verdictCls = verdict.includes('STRONG') ? 'verdict-strong' : verdict.includes('IMPROVEMENTS') ? 'verdict-mid' : 'verdict-weak'
 
   if (phase === 'loading') {
     return (
@@ -128,33 +161,48 @@ export default function ReportPage() {
           <div className="report-tag">VALIDATION REPORT · LIVE</div>
           <div className="report-h1">DEMAND ANALYSIS</div>
           <div className="idea-display">IDEA: {idea.toUpperCase()}</div>
+          {data?.industry && (
+            <div className="report-meta">
+              <span className="meta-tag">{data.industry}</span>
+              <span className="meta-tag">{data.businessModel}</span>
+            </div>
+          )}
         </div>
 
-        <div className="metrics-title">VC VIABILITY SCORES</div>
-        <div className="metrics-grid">
-          {scores.map((m, i) => (
-            <div className="metric-card" key={i}>
-              <div className={`metric-score ${m.cls}`}>{m.score}</div>
-              <div className="metric-bar-wrap">
-                <div className={`metric-bar ${m.cls}`} style={{ width: `${m.score}%` }} />
+        {/* YC VERDICT */}
+        {yc && (
+          <>
+            <div className="overall-score">
+              <div className="big-score">{overallScore}</div>
+              <div className="score-info">
+                <div className={`score-verdict ${verdictCls}`}>{verdict}</div>
+                <div className="score-desc">
+                  <strong>Strength:</strong> {yc.topStrength}<br />
+                  <strong>Weakness:</strong> {yc.topWeakness}
+                </div>
               </div>
-              <div className="metric-name" style={{ whiteSpace: 'pre-line' }}>{m.name}</div>
             </div>
-          ))}
-        </div>
 
-        <div className="overall-score">
-          <div className="big-score">{overall}</div>
-          <div className="score-info">
-            <div className="score-verdict">{verdict}</div>
-            <div className="score-desc">
-              {data?.similarStartups?.length
-                ? `${data.similarStartups.length} similar companies found in our database. ${data.fundingInsights?.totalDeals || 0} funding events tracked in this space.`
-                : 'Market signal analysis complete. Review the data below.'}
+            {/* YC SCORES */}
+            <div className="data-section">
+              <div className="section-label">YC EVALUATION FRAMEWORK</div>
+              <div className="yc-scores">
+                <ScoreBar score={yc.founderScore} label="FOUNDER QUALITY" feedback={yc.founderFeedback} />
+                <ScoreBar score={yc.marketScore} label="MARKET POTENTIAL" feedback={yc.marketFeedback} />
+                <ScoreBar score={yc.tractionScore} label="TRACTION SIGNAL" feedback={yc.tractionFeedback} />
+                <ScoreBar score={yc.speedScore} label="EXECUTION SPEED" feedback={yc.speedFeedback} />
+              </div>
             </div>
-          </div>
-        </div>
 
+            {/* NEXT STEP */}
+            <div className="next-step-block">
+              <div className="next-step-label">RECOMMENDED NEXT ACTION</div>
+              <div className="next-step-text">› {yc.nextStep}</div>
+            </div>
+          </>
+        )}
+
+        {/* FUNDING INSIGHTS */}
         {data?.fundingInsights && data.fundingInsights.totalDeals > 0 && (
           <div className="data-section">
             <div className="section-label">FUNDING INTELLIGENCE</div>
@@ -179,6 +227,7 @@ export default function ReportPage() {
           </div>
         )}
 
+        {/* SIMILAR STARTUPS */}
         {data?.similarStartups && data.similarStartups.length > 0 && (
           <div className="data-section">
             <div className="section-label">SIMILAR COMPANIES IN DATABASE</div>
@@ -188,7 +237,11 @@ export default function ReportPage() {
                   <div className="startup-num">{String(i + 1).padStart(2, '0')}</div>
                   <div className="startup-info">
                     <div className="startup-name">{s.name}</div>
-                    <div className="startup-meta">{s.category !== 'N/A' ? s.category : ''}{s.country !== 'N/A' ? ` · ${s.country}` : ''}</div>
+                    <div className="startup-meta">
+                      {s.category !== 'N/A' ? s.category : ''}
+                      {s.country !== 'N/A' ? ` · ${s.country}` : ''}
+                      {parseFloat(s.funding) > 0 ? ` · ${formatUSD(parseFloat(s.funding))} raised` : ''}
+                    </div>
                   </div>
                   <div className={`startup-status status-${s.status?.toLowerCase()}`}>{s.status}</div>
                 </div>
@@ -197,6 +250,7 @@ export default function ReportPage() {
           </div>
         )}
 
+        {/* YC COMPANIES */}
         {data?.ycStartups && data.ycStartups.length > 0 && (
           <div className="data-section">
             <div className="section-label">Y COMBINATOR COMPANIES IN THIS SPACE</div>
@@ -215,6 +269,7 @@ export default function ReportPage() {
           </div>
         )}
 
+        {/* INVESTORS */}
         {data?.investors && data.investors.length > 0 && (
           <div className="data-section">
             <div className="section-label">INVESTORS ACTIVE IN THIS SPACE</div>
@@ -226,6 +281,7 @@ export default function ReportPage() {
           </div>
         )}
 
+        {/* PAY */}
         <div className="stripe-section">
           <div className="stripe-question">Will you pay for this?</div>
           <div className="stripe-sub">
@@ -238,6 +294,7 @@ export default function ReportPage() {
           <div className="stripe-badge">SECURED BY STRIPE · 256-BIT TLS</div>
         </div>
 
+        {/* SUPPORTERS */}
         <div className="supporters-section">
           <div className="supporters-header">
             <div className="supporters-title">VISIONARY SUPPORTERS OF THE FOUNDER</div>
@@ -258,12 +315,7 @@ export default function ReportPage() {
       </div>
 
       <Footer />
-
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSuccess={handleSupporterSuccess}
-      />
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={handleSupporterSuccess} />
     </>
   )
 }
