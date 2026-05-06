@@ -38,7 +38,10 @@ async function extractWithGroq(idea: string): Promise<{
     })
 
     const data = await res.json()
-    const text = (data.choices?.[0]?.message?.content || '{}').trim()
+    let text = (data.choices?.[0]?.message?.content || '{}').trim()
+    console.log('Groq raw response:', text)
+    // Strip markdown code blocks if present
+    text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim()
     const parsed = JSON.parse(text)
 
     return {
