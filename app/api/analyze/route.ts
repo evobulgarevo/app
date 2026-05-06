@@ -20,12 +20,19 @@ async function extractWithGroq(idea: string): Promise<{
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama3-8b-8192',
         messages: [
           {
             role: 'system',
-            content: `You are a startup analyst. Given a startup idea, return ONLY a JSON object with no explanation, no markdown, no code blocks. Just raw JSON like this:
-{"industry":"E-Commerce","businessModel":"marketplace","categories":["resale","marketplace","footwear"],"keywords":["resale","secondhand","shoes"]}`
+            content: `You are a startup analyst. Analyze the startup idea and return ONLY a raw JSON object. No markdown, no explanation, no code blocks. Always populate all fields.
+
+Example for "app to buy and sell used books":
+{"industry":"E-Commerce","businessModel":"marketplace","categories":["books","resale","marketplace","secondhand"],"keywords":["books","resale","marketplace"]}
+
+Example for "AI tool for doctors":
+{"industry":"HealthTech","businessModel":"saas","categories":["health","medical","artificial-intelligence","healthcare"],"keywords":["health","medical","doctor"]}
+
+Always return 3-5 categories and 3 keywords that would appear in a startup database.`
           },
           {
             role: 'user',
