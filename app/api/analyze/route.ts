@@ -26,13 +26,16 @@ async function extractWithGroq(idea: string): Promise<{
             role: 'system',
             content: `You are a startup analyst. Analyze the startup idea and return ONLY a raw JSON object. No markdown, no explanation, no code blocks. Always populate all fields.
 
+The categories field MUST use only these exact values from our startup database:
+software, web, ecommerce, games_video, mobile, advertising, consulting, enterprise, biotech, hardware, education, public_relations, network_hosting, search, cleantech, health, finance, social, security, medical, analytics, legal, travel, local, hospitality, news, semiconductor, manufacturing, sports, other
+
 Example for "app to buy and sell used books":
-{"industry":"E-Commerce","businessModel":"marketplace","categories":["books","resale","marketplace","secondhand"],"keywords":["books","resale","marketplace"]}
+{"industry":"E-Commerce","businessModel":"marketplace","categories":["ecommerce","web","social"],"keywords":["books","resale","marketplace"]}
 
 Example for "AI tool for doctors":
-{"industry":"HealthTech","businessModel":"saas","categories":["health","medical","artificial-intelligence","healthcare"],"keywords":["health","medical","doctor"]}
+{"industry":"HealthTech","businessModel":"saas","categories":["health","medical","software"],"keywords":["health","medical","doctor"]}
 
-Always return 3-5 categories and 3 keywords that would appear in a startup database.`
+Always return 2-3 categories from the list above and 3 keywords.`
           },
           {
             role: 'user',
@@ -91,7 +94,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const categoryFilter = searchTerms.map(t => `data->>category_list.ilike.%${t}%`).join(',')
+  const categoryFilter = searchTerms.map(t => `data->>category_code.eq.${t}`).join(',')
 
   const { data: similarStartups } = await supabase
     .from('raw_startups')
