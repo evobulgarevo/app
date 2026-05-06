@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   const extracted = await extractWithGroq(idea)
   const { categories, keywords, industry, businessModel } = extracted
 
-  const searchTerms = [...new Set([...categories, ...keywords])].slice(0, 5)
+  const searchTerms = Array.from(new Set([...categories, ...keywords])).slice(0, 5)
   const primaryTerm = searchTerms[0] || ''
   const secondaryTerm = searchTerms[1] || ''
 
