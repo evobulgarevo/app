@@ -122,10 +122,10 @@ export default function HomePage() {
           </div>
 
           <div className="stats-row">
-            <div className="stat"><div className="stat-num">847</div><div className="stat-label">Ideas validated</div></div>
-            <div className="stat"><div className="stat-num">92%</div><div className="stat-label">Accuracy rate</div></div>
-            <div className="stat"><div className="stat-num">$4.2M</div><div className="stat-label">Funding raised</div></div>
-            <div className="stat"><div className="stat-num">3.1K</div><div className="stat-label">Visionaries</div></div>
+            <div className="stat"><div className="stat-num">50M+</div><div className="stat-label">Startups launch every year.</div></div>
+            <div className="stat"><div className="stat-num">42%</div><div className="stat-label">Fail due to no market need.</div></div>
+            <div className="stat"><div className="stat-num">300B+</div><div className="stat-label">Invested into startups annually ($$$).</div></div>
+            <div className="stat"><div className="stat-num">0</div><div className="stat-label">Structured validation by most founders.</div></div>
           </div>
         </section>
       </div>
