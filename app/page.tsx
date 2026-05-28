@@ -9,13 +9,13 @@ const QUESTIONS = [
   {
     id: 'idea',
     label: 'WHAT PAIN POINT DOES YOUR IDEA SOLVE?',
-    placeholder: 'Describe your startup idea clearly and concisely...',
+    placeholder: 'e.g. reduces churn for SaaS companies...',
     type: 'input',
   },
   {
     id: 'traction',
     label: 'WHAT IS YOUR CURRENT TRACTION?',
-    placeholder: 'e.g. 50 beta users, $2K MRR, working prototype, just an idea...',
+    placeholder: 'e.g. 50 beta users, $2K MRR, just an idea...',
     type: 'input',
   },
   {
@@ -71,55 +71,75 @@ export default function HomePage() {
       <Nav />
       <div className="wrap page-enter">
         <section className="hero">
-          <div className="eyebrow">Demand validation engine</div>
-          <div className="hero-h1-wrap">
-            <div className="h1-ghost r" aria-hidden="true">VALIDATE DEMAND{'\n'}BEFORE YOU BUILD.</div>
-            <div className="h1-ghost b" aria-hidden="true">VALIDATE DEMAND{'\n'}BEFORE YOU BUILD.</div>
-            <h1>VALIDATE DEMAND<br />BEFORE YOU BUILD.</h1>
-          </div>
-          <p className="hero-sub">
-            Boffo fine-tunes models &amp; uses precise context engineering to validate demand against must-have VC metrics &amp; real user data.
-          </p>
 
-          <div className="validate-box">
-            <div className="intake-progress">
-              <div className="intake-progress-fill" style={{ width: `${progress}%` }} />
+          {/* ── two-column layout ── */}
+          <div className="hero-cols">
+
+            {/* LEFT: hero copy */}
+            <div className="hero-left">
+              <div className="eyebrow">Demand validation engine</div>
+              <p className="hero-sub">
+                Boffo fine-tunes models &amp; uses precise context engineering to validate demand against must-have VC metrics &amp; real user data.
+              </p>
+              <div className="poc-disclaimer">
+                <div className="poc-version">VERSION 0.0.0.1 — PROOF OF CONCEPT</div>
+                <p className="poc-text">
+                  This is an early-stage POC. Validation is run against a dataset of 200,000+ startups, 50,000+ funding rounds, and 80,000+ investment records.
+                </p>
+                <p className="poc-note">
+                  ⚠ Dataset sourced from 2010 onwards. Results reflect historical market patterns and may not capture emerging trends or recent market shifts.
+                </p>
+              </div>
             </div>
-            <div className="intake-step-label">STEP {step + 1} OF {QUESTIONS.length}</div>
-            <div className="intake-question">{current.label}</div>
 
-            {current.type === 'input' && (
-              <div className="validate-row">
-                <input
-                  key={current.id}
-                  className="validate-input"
-                  type="text"
-                  placeholder={current.placeholder}
-                  value={answers[current.id] || ''}
-                  onChange={e => setAnswers(a => ({ ...a, [current.id]: e.target.value }))}
-                  onKeyDown={handleKeyDown}
-                  autoFocus
-                />
-                <button className="validate-btn" onClick={() => handleNext()}>
-                  {isLast ? 'VALIDATE' : 'NEXT →'}
-                </button>
-              </div>
-            )}
+            {/* RIGHT: form */}
+            <div className="hero-right">
+              <div className="validate-box">
+                <div className="systems-go">
+                  ALL SYSTEMS GO<span className="cursor-blink">_</span>
+                </div>
 
-            {current.type === 'select' && (
-              <div className="select-options">
-                {current.options!.map(opt => (
-                  <button
-                    key={opt}
-                    className={`select-option ${answers[current.id] === opt ? 'selected' : ''}`}
-                    onClick={() => handleNext(opt)}
-                  >
-                    <span className="option-arrow">›</span> {opt}
-                  </button>
-                ))}
+                <div className="intake-progress">
+                  <div className="intake-progress-fill" style={{ width: `${progress}%` }} />
+                </div>
+                <div className="intake-step-label">STEP {step + 1} OF {QUESTIONS.length}</div>
+                <div className="intake-question">{current.label}</div>
+
+                {current.type === 'input' && (
+                  <div className="validate-row">
+                    <input
+                      key={current.id}
+                      className="validate-input"
+                      type="text"
+                      placeholder={current.placeholder}
+                      value={answers[current.id] || ''}
+                      onChange={e => setAnswers(a => ({ ...a, [current.id]: e.target.value }))}
+                      onKeyDown={handleKeyDown}
+                      autoFocus
+                    />
+                    <button className="validate-btn" onClick={() => handleNext()}>
+                      {isLast ? 'VALIDATE' : 'PROCEED'} <span className="btn-arrow">▶</span>
+                    </button>
+                  </div>
+                )}
+
+                {current.type === 'select' && (
+                  <div className="select-options">
+                    {current.options!.map(opt => (
+                      <button
+                        key={opt}
+                        className={`select-option ${answers[current.id] === opt ? 'selected' : ''}`}
+                        onClick={() => handleNext(opt)}
+                      >
+                        <span className="option-arrow">›</span> {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+
+          </div>{/* end hero-cols */}
 
           <div className="stats-row">
             <div className="stat"><div className="stat-num">50M+</div><div className="stat-label">Startups launch every year.</div></div>
@@ -127,6 +147,7 @@ export default function HomePage() {
             <div className="stat"><div className="stat-num">300B+</div><div className="stat-label">Invested into startups annually ($$$).</div></div>
             <div className="stat"><div className="stat-num">0</div><div className="stat-label">Structured validation by most founders.</div></div>
           </div>
+
         </section>
       </div>
       <Footer />
