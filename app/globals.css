@@ -83,6 +83,7 @@ nav {
   background: transparent;
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
+  margin-left: auto;
 }
 .nav-cta:hover { background: var(--accent); color: var(--bg); }
 .nav-cta--disabled {
@@ -209,8 +210,8 @@ nav {
   border: 1px solid var(--border);
   padding: 28px;
   position: relative;
-  max-width: 640px;
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 .validate-row {
   display: flex;
@@ -260,35 +261,6 @@ nav {
 }
 
 /* ============ STATS ============ */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin-top: 80px;
-  border: 1px solid var(--border);
-}
-.stat {
-  padding: 48px 36px;
-  border-right: 1px solid var(--border);
-  text-align: center;
-}
-.stat:last-child { border-right: none; }
-.stat-num {
-  font-family: var(--display);
-  font-size: clamp(52px, 6vw, 88px);
-  color: var(--accent);
-  line-height: 1;
-  margin-bottom: 16px;
-  letter-spacing: -1px;
-}
-.stat-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  line-height: 1.6;
-  max-width: 180px;
-  margin: 0 auto;
-}
 
 /* ============ LOADING ============ */
 .loading-state { text-align: center; padding: 120px 0; }
@@ -486,8 +458,9 @@ textarea.field-input { height: 140px; resize: none; }
 .success-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.8; }
 
 /* ============ FOOTER ============ */
-footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 80px; }
-.footer-inner { max-width: var(--max-w); margin: 0 auto; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; }
+footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 0; }
+.main-shell-footer .footer-inner { max-width: calc(var(--max-w) - 180px); padding: 0 48px; margin: 0; }
+.footer-inner { max-width: 100%; margin: 0; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
 .footer-logo { font-family: var(--display); font-size: 22px; color: var(--muted); letter-spacing: 1px; }
 .footer-copy { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; }
 
@@ -569,13 +542,144 @@ footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 80px;
 .hero-h1-wrap { position: relative; display: inline-block; margin-bottom: 24px; }
 .h1-ghost { display: none; }
 
+/* ============ APP SHELL ============ */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar shell — sticky full-height left column */
+.sidebar-shell {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+  z-index: 101;
+}
+
+.sidebar-shell-nav,
+.sidebar-shell-footer {
+  flex-shrink: 0;
+}
+
+/* Sidebar fills remaining height between nav and footer */
+.sidebar {
+  flex: 1;
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg2);
+  overflow-y: auto;
+  border: none;
+}
+
+/* Main shell — scrollable right column */
+.main-shell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 0 48px;
+}
+
 /* ============ HERO TWO-COL ============ */
 .hero-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 64px;
+  gap: 0;
   align-items: stretch;
   padding: 64px 0 48px;
+}
+
+/* Stacked layout for home page */
+.hero-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 64px 0 48px;
+  gap: 0;
+  max-width: 600px;
+}
+
+.demand-engine {
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 28px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: default;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.sidebar-link--disabled {
+  pointer-events: none;
+}
+
+.sidebar-link:not(.sidebar-link--disabled):hover {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.sidebar-icon {
+  font-size: 12px;
+  color: var(--dim);
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+.sidebar-link-text {
+  flex: 1;
+}
+
+.sidebar-soon {
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #00ff88;
+  opacity: 0.7;
 }
 
 .hero-left {
@@ -584,6 +688,7 @@ footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 80px;
   justify-content: flex-start;
   min-width: 0;
   border: 1px solid var(--border);
+  border-left: none;
   padding: 28px;
   container-type: inline-size;
   container-name: hero-left;
@@ -594,6 +699,7 @@ footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 80px;
   flex-direction: column;
   justify-content: flex-start;
   min-width: 0;
+  padding: 0 0 0 48px;
 }
 
 
@@ -651,12 +757,46 @@ footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 80px;
 }
 
 /* ============ RESPONSIVE ============ */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .app-shell { flex-direction: column; }
+
+  .sidebar-shell {
+    width: 100%;
+    height: auto;
+    position: static;
+    flex-direction: column;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Hide the duplicate nav/footer in sidebar-shell on mobile */
+  .sidebar-shell-nav,
+  .sidebar-shell-footer { display: none; }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    gap: 4px;
+    overflow-y: visible;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-label { display: none; }
+  .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 0; }
+  .sidebar-link { padding: 8px 14px; border: 1px solid var(--border); font-size: 10px; }
+  .sidebar-soon { display: none; }
+
+  .main-content { padding: 0 24px; }
+
   .hero-cols {
     grid-template-columns: 1fr;
-    gap: 40px;
-    padding: 48px 0 40px;
+    padding: 32px 0 40px;
   }
+
+  .hero-left { border-left: 1px solid var(--border); border-top: none; }
+  .hero-right { padding: 28px 0 0; }
 }
 
 /* ============ HERO HEADING ============ */
@@ -677,3 +817,54 @@ footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 80px;
   max-width: 100%;
 }
 
+
+/* ============ SHELL NAV / FOOTER OVERRIDES ============ */
+/* Nav and footer inside sidebar-shell fill the narrow column exactly */
+.sidebar-shell-nav .nav-inner,
+.sidebar-shell-footer .footer-inner {
+  max-width: 100%;
+  margin: 0;
+  padding: 0 16px;
+}
+/* Sidebar nav: hide links and CTA, keep logo only */
+.sidebar-shell-nav .nav-links,
+.sidebar-shell-nav .nav-cta { display: none; }
+
+/* Main nav: hide logo — sidebar carries it */
+.main-shell-nav .logo { display: none; }
+
+/* Main shell nav keeps full behaviour */
+.main-shell-nav .nav-inner {
+  max-width: calc(var(--max-w) - 180px);
+  margin: 0;
+  padding: 0 48px;
+}
+
+/* ── Footer line alignment ──────────────────────────────────────────────────
+   The sidebar is sticky/100vh so its footer is always at the viewport bottom.
+   The main footer is content-driven and may sit higher or lower.
+   Strip border-top from both footers and draw ONE continuous line using a
+   pseudo-element on the sticky sidebar-shell-footer — it spans the full
+   viewport width so it always appears as one unbroken horizontal rule.    */
+.sidebar-shell-footer footer,
+.main-shell-footer footer { border-top: none; }
+
+.sidebar-shell-footer {
+  position: relative;
+}
+.sidebar-shell-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
+/* Hide duplicate logo in main footer — sidebar nav carries the logo */
+.main-shell-footer .footer-logo { display: none; }
+
+/* Push main content footer to bottom of shell */
+.main-shell { justify-content: space-between; }

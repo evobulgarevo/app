@@ -67,16 +67,85 @@ export default function HomePage() {
   const progress = ((step) / QUESTIONS.length) * 100
 
   return (
-    <>
-      <Nav />
-      <div className="wrap page-enter">
-        <section className="hero">
+    <div className="app-shell">
 
-          {/* ── two-column layout ── */}
-          <div className="hero-cols">
+      {/* ── full-height sidebar ── */}
+      <div className="sidebar-shell">
+        <div className="sidebar-shell-nav"><Nav /></div>
+        <div className="sidebar">
+          <div className="sidebar-label">COMMAND CENTER</div>
+          <nav className="sidebar-nav">
+            {[
+              { label: 'Ideas', icon: '◈' },
+              { label: 'Validations', icon: '◎' },
+              { label: 'Iterations', icon: '⟳' },
+              { label: 'Analytics', icon: '▦' },
+              { label: "MVP's", icon: '◆' },
+            ].map(({ label, icon }) => (
+              <a key={label} className="sidebar-link sidebar-link--disabled">
+                <span className="sidebar-icon">{icon}</span>
+                <span className="sidebar-link-text">{label}</span>
+                <span className="sidebar-soon">soon</span>
+              </a>
+            ))}
+          </nav>
+        </div>
+        <div className="sidebar-shell-footer"><Footer /></div>
+      </div>
 
-            {/* LEFT: hero copy */}
-            <div className="hero-left">
+      {/* ── main content ── */}
+      <div className="main-shell page-enter">
+        <div className="main-shell-nav"><Nav /></div>
+        <div className="main-content">
+          <div className="hero-stack">
+
+            {/* All Systems Go form */}
+            <div className="validate-box">
+              <div className="systems-go">
+                ALL SYSTEMS GO<span className="cursor-blink">_</span>
+              </div>
+
+              <div className="intake-progress">
+                <div className="intake-progress-fill" style={{ width: `${progress}%` }} />
+              </div>
+              <div className="intake-step-label">STEP {step + 1} OF {QUESTIONS.length}</div>
+              <div className="intake-question">{current.label}</div>
+
+              {current.type === 'input' && (
+                <div className="validate-row">
+                  <input
+                    key={current.id}
+                    className="validate-input"
+                    type="text"
+                    placeholder={current.placeholder}
+                    value={answers[current.id] || ''}
+                    onChange={e => setAnswers(a => ({ ...a, [current.id]: e.target.value }))}
+                    onKeyDown={handleKeyDown}
+                    autoFocus
+                  />
+                  <button className="validate-btn" onClick={() => handleNext()}>
+                    {isLast ? 'VALIDATE' : 'PROCEED'} <span className="btn-arrow">▶</span>
+                  </button>
+                </div>
+              )}
+
+              {current.type === 'select' && (
+                <div className="select-options">
+                  {current.options!.map(opt => (
+                    <button
+                      key={opt}
+                      className={`select-option ${answers[current.id] === opt ? 'selected' : ''}`}
+                      onClick={() => handleNext(opt)}
+                    >
+                      <span className="option-arrow">›</span> {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Demand Validation Engine — below, same width */}
+            <div className="demand-engine">
               <div className="eyebrow">Demand validation engine</div>
               <p className="hero-sub">
                 Boffo fine-tunes models &amp; uses precise context engineering to validate demand against must-have VC metrics &amp; real user data.
@@ -92,65 +161,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* RIGHT: form */}
-            <div className="hero-right">
-              <div className="validate-box">
-                <div className="systems-go">
-                  ALL SYSTEMS GO<span className="cursor-blink">_</span>
-                </div>
-
-                <div className="intake-progress">
-                  <div className="intake-progress-fill" style={{ width: `${progress}%` }} />
-                </div>
-                <div className="intake-step-label">STEP {step + 1} OF {QUESTIONS.length}</div>
-                <div className="intake-question">{current.label}</div>
-
-                {current.type === 'input' && (
-                  <div className="validate-row">
-                    <input
-                      key={current.id}
-                      className="validate-input"
-                      type="text"
-                      placeholder={current.placeholder}
-                      value={answers[current.id] || ''}
-                      onChange={e => setAnswers(a => ({ ...a, [current.id]: e.target.value }))}
-                      onKeyDown={handleKeyDown}
-                      autoFocus
-                    />
-                    <button className="validate-btn" onClick={() => handleNext()}>
-                      {isLast ? 'VALIDATE' : 'PROCEED'} <span className="btn-arrow">▶</span>
-                    </button>
-                  </div>
-                )}
-
-                {current.type === 'select' && (
-                  <div className="select-options">
-                    {current.options!.map(opt => (
-                      <button
-                        key={opt}
-                        className={`select-option ${answers[current.id] === opt ? 'selected' : ''}`}
-                        onClick={() => handleNext(opt)}
-                      >
-                        <span className="option-arrow">›</span> {opt}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-          </div>{/* end hero-cols */}
-
-          <div className="stats-row">
-            <div className="stat"><div className="stat-num">50M+</div><div className="stat-label">Startups launch every year.</div></div>
-            <div className="stat"><div className="stat-num">42%</div><div className="stat-label">Fail due to no market need.</div></div>
-            <div className="stat"><div className="stat-num">300B+</div><div className="stat-label">Invested into startups annually ($$$).</div></div>
-            <div className="stat"><div className="stat-num">0</div><div className="stat-label">Structured validation by most founders.</div></div>
           </div>
-
-        </section>
+        </div>
+        <div className="main-shell-footer"><Footer /></div>
       </div>
-      <Footer />
-    </>
+
+    </div>
   )
 }
