@@ -1,7 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createClient as createAuthClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
-const supabase = createClient(
+const supabase = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
@@ -95,6 +96,10 @@ Avg funding in space: $${inputs.avgRound.toLocaleString()}`,
 }
 
 export async function POST(req: NextRequest) {
+  const authClient = await createAuthClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const body = await req.json()
   const { idea, traction, technical, team, speed } = body
   if (!idea) return NextResponse.json({ error: 'No idea provided' }, { status: 400 })
