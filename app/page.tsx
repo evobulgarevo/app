@@ -107,7 +107,7 @@ export default function HomePage() {
             {/* All Systems Go form */}
             <div className="validate-box">
               <div className="systems-go">
-                ALL SYSTEMS GO<span className="cursor-blink">_</span>
+                ALL SYSTEMS GO
               </div>
 
               <div className="intake-progress">
