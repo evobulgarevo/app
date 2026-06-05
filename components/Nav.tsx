@@ -35,7 +35,9 @@ export default function Nav() {
   return (
     <nav>
       <div className="nav-inner">
-        <div className="logo" onClick={() => router.push('/')}>BOFFO_</div>
+        <div className="logo" onClick={() => router.push('/')}>
+          BOFFO<span className="logo-cursor" />
+        </div>
         <ul className="nav-links" />
 
         {user ? (
