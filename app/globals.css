@@ -5,14 +5,14 @@
 :root {
   --bg: #080808;
   --bg2: #0d0d0d;
-  --surface: #111111;
-  --border: #222222;
-  --border-light: #1a1a1a;
+  --surface: #161616;
+  --border: #303030;
+  --border-light: #242424;
   --accent: #ffffff;
-  --accent2: #888888;
-  --text: #e8e8e0;
-  --muted: #555555;
-  --dim: #333333;
+  --accent2: #999999;
+  --text: #f0f0e8;
+  --muted: #777777;
+  --dim: #484848;
   --mono: 'DM Mono', monospace;
   --display: 'Bebas Neue', sans-serif;
   --heading: 'Bebas Neue', sans-serif;
