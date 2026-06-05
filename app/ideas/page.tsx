@@ -89,6 +89,10 @@ export default function IdeasPage() {
 
             {!loading && analyses.length > 0 && (
               <div className="ideas-list">
+                <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: '9px', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--muted)' }}>VALIDATION HISTORY</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: '9px', letterSpacing: '1px', color: 'var(--dim)' }}>{analyses.length} {analyses.length === 1 ? 'IDEA' : 'IDEAS'}</span>
+                </div>
                 {analyses.map((a, i) => (
                   <div
                     key={a.id}
