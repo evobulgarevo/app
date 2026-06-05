@@ -5,11 +5,11 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 const NAV_ITEMS = [
-  { label: 'Ideas', icon: '◈', href: '/ideas' },
+  { label: 'Ideas',       icon: '◈', href: '/ideas' },
   { label: 'Validations', icon: '◎', href: null },
-  { label: 'Iterations', icon: '⟳', href: null },
-  { label: 'Analytics', icon: '▦', href: null },
-  { label: "MVP's", icon: '◆', href: null },
+  { label: 'Iterations',  icon: '⟳', href: null },
+  { label: 'Analytics',   icon: '▦', href: null },
+  { label: "MVP's",       icon: '◆', href: null },
 ]
 
 export default function Sidebar() {
@@ -23,7 +23,7 @@ export default function Sidebar() {
         <div className="sidebar-label">COMMAND CENTER</div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(({ label, icon, href }) => {
-            const isActive = href && pathname === href
+            const isActive = href && pathname.startsWith(href)
             const isDisabled = !href
             return (
               <a

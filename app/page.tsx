@@ -76,16 +76,21 @@ export default function HomePage() {
           <div className="sidebar-label">COMMAND CENTER</div>
           <nav className="sidebar-nav">
             {[
-              { label: 'Ideas', icon: '◈' },
-              { label: 'Validations', icon: '◎' },
-              { label: 'Iterations', icon: '⟳' },
-              { label: 'Analytics', icon: '▦' },
-              { label: "MVP's", icon: '◆' },
-            ].map(({ label, icon }) => (
-              <a key={label} className="sidebar-link sidebar-link--disabled">
+              { label: 'Ideas', icon: '◈', href: '/ideas' },
+              { label: 'Validations', icon: '◎', href: null },
+              { label: 'Iterations', icon: '⟳', href: null },
+              { label: 'Analytics', icon: '▦', href: null },
+              { label: "MVP's", icon: '◆', href: null },
+            ].map(({ label, icon, href }) => (
+              <a
+                key={label}
+                className={['sidebar-link', !href ? 'sidebar-link--disabled' : ''].join(' ')}
+                onClick={href ? () => router.push(href) : undefined}
+                style={{ cursor: href ? 'pointer' : 'default' }}
+              >
                 <span className="sidebar-icon">{icon}</span>
                 <span className="sidebar-link-text">{label}</span>
-                <span className="sidebar-soon">soon</span>
+                {!href && <span className="sidebar-soon">soon</span>}
               </a>
             ))}
           </nav>
