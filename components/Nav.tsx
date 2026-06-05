@@ -38,10 +38,9 @@ export default function Nav() {
         <div className="logo" onClick={() => router.push('/')}>
           BOFFO<span className="logo-cursor" />
         </div>
-        <ul className="nav-links" />
 
         {user ? (
-          <div className="nav-user-menu">
+          <div className="nav-user-menu" style={{ marginLeft: 'auto' }}>
             <button
               className="nav-cta"
               onClick={() => setMenuOpen(o => !o)}
@@ -62,7 +61,7 @@ export default function Nav() {
             )}
           </div>
         ) : (
-          <button className="nav-cta" onClick={() => router.push('/login')}>
+          <button className="nav-cta" style={{ marginLeft: 'auto' }} onClick={() => router.push('/login')}>
             SIGN UP / LOGIN
           </button>
         )}

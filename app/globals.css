@@ -826,6 +826,10 @@ footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 0; }
 
   .main-content { padding: 0 24px; }
 
+  /* Nav CTA responsive */
+  .main-shell-nav .nav-inner { padding: 0 16px; }
+  .nav-cta { font-size: 9px; padding: 7px 12px; letter-spacing: 1px; }
+
   .hero-cols {
     grid-template-columns: 1fr;
     padding: 32px 0 40px;
@@ -864,16 +868,22 @@ footer { border-top: 1px solid var(--border); padding: 28px 0; margin-top: 0; }
 }
 /* Sidebar nav: hide links and CTA, keep logo only */
 .sidebar-shell-nav .nav-links,
-.sidebar-shell-nav .nav-cta { display: none; }
+.sidebar-shell-nav .nav-cta,
+.sidebar-shell-nav .nav-user-menu { display: none; }
 
 /* Main nav: hide logo — sidebar carries it */
 .main-shell-nav .logo { display: none; }
 
-/* Main shell nav keeps full behaviour */
+/* Push auth button to right in main shell nav */
+.main-shell-nav .nav-user-menu,
+.main-shell-nav .nav-cta { margin-left: auto; }
+
+/* Main shell nav spans the full available width, button flush right */
 .main-shell-nav .nav-inner {
-  max-width: calc(var(--max-w) - 180px);
+  max-width: 100%;
   margin: 0;
-  padding: 0 48px;
+  padding: 0 32px;
+  justify-content: flex-end;
 }
 
 /* ── Footer line alignment ──────────────────────────────────────────────────
