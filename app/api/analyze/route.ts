@@ -1,6 +1,7 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient as createAuthClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { saveAnalysis } from '@/lib/supabase/analyses'
 
 const supabase = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -156,7 +157,7 @@ export async function POST(req: NextRequest) {
     avgRound: avgFunding,
   })
 
-  return NextResponse.json({
+  const responsePayload = {
     industry,
     businessModel,
     searchTerms,
@@ -187,5 +188,18 @@ export async function POST(req: NextRequest) {
       type: i.data?.investor_types || i.data?.type || 'VC',
       country: i.data?.country_code || i.data?.country || 'N/A',
     })),
+  }
+
+  const overallScore = ycAnalysis
+    ? Math.round((ycAnalysis.founderScore + ycAnalysis.marketScore + ycAnalysis.tractionScore + ycAnalysis.speedScore) / 4)
+    : 0
+
+  const analysisId = await saveAnalysis({
+    idea,
+    inputs: { traction, technical, team, speed },
+    result: responsePayload,
+    score: overallScore,
   })
+
+  return NextResponse.json({ ...responsePayload, analysisId })
 }

@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Modal from '@/components/Modal'
 import { BASE_SUPPORTERS, Supporter } from '@/lib/data'
+import { createClient } from '@/lib/supabase/client'
 
 type Phase = 'loading' | 'report'
 
@@ -73,6 +74,9 @@ function ScoreBar({ score, label, feedback }: { score: number; label: string; fe
 
 export default function ReportPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const analysisId = searchParams.get('id')
+
   const [phase, setPhase] = useState<Phase>('loading')
   const [loadingStep, setLoadingStep] = useState(0)
   const [fillWidth, setFillWidth] = useState(0)
@@ -86,11 +90,6 @@ export default function ReportPage() {
     if (hasRun.current) return
     hasRun.current = true
 
-    const storedIdea = sessionStorage.getItem('boffo_idea') || 'Your startup idea'
-    const storedData = sessionStorage.getItem('boffo_data')
-    const parsed = storedData ? JSON.parse(storedData) : {}
-    setIdea(storedIdea)
-
     setTimeout(() => setFillWidth(100), 50)
     let step = 0
     const si = setInterval(() => {
@@ -98,28 +97,52 @@ export default function ReportPage() {
       if (step < LOADING_STEPS.length) setLoadingStep(step)
     }, 900)
 
-    fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        idea: storedIdea,
-        traction: parsed.traction,
-        technical: parsed.technical,
-        team: parsed.team,
-        speed: parsed.speed,
-      }),
-    })
-      .then(r => r.json())
-      .then((result: AnalysisData) => {
-        clearInterval(si)
-        setData(result)
-        setPhase('report')
+    // Load from DB if we have an id, otherwise run fresh from sessionStorage
+    if (analysisId) {
+      const supabase = createClient()
+      supabase
+        .from('analyses')
+        .select('idea, result')
+        .eq('id', analysisId)
+        .single()
+        .then(({ data: row }) => {
+          clearInterval(si)
+          if (row) {
+            setIdea(row.idea)
+            setData(row.result as AnalysisData)
+          }
+          setPhase('report')
+        })
+    } else {
+      const storedIdea = sessionStorage.getItem('boffo_idea') || 'Your startup idea'
+      const storedData = sessionStorage.getItem('boffo_data')
+      const parsed = storedData ? JSON.parse(storedData) : {}
+      setIdea(storedIdea)
+
+      fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idea: storedIdea,
+          traction: parsed.traction,
+          technical: parsed.technical,
+          team: parsed.team,
+          speed: parsed.speed,
+        }),
       })
-      .catch(() => {
-        clearInterval(si)
-        setPhase('report')
-      })
-  }, [])
+        .then(r => r.json())
+        .then((result: AnalysisData & { analysisId?: string }) => {
+          clearInterval(si)
+          // Update URL to the saved analysis so refresh/share works
+          if (result.analysisId) {
+            window.history.replaceState(null, '', `/report?id=${result.analysisId}`)
+          }
+          setData(result)
+          setPhase('report')
+        })
+        .catch(() => { clearInterval(si); setPhase('report') })
+    }
+  }, [analysisId])
 
   function handleSupporterSuccess(supporter: Supporter) {
     setSupporters(prev => [supporter, ...prev])
@@ -155,7 +178,7 @@ export default function ReportPage() {
     <>
       <Nav />
       <div className="wrap page-enter">
-        <button className="back-btn" onClick={() => router.push('/')}>← BACK</button>
+        <button className="back-btn" onClick={() => router.push('/ideas')}>← BACK TO IDEAS</button>
 
         <div className="report-header">
           <div className="report-tag">VALIDATION REPORT · LIVE</div>
@@ -169,7 +192,6 @@ export default function ReportPage() {
           )}
         </div>
 
-        {/* YC VERDICT */}
         {yc && (
           <>
             <div className="overall-score">
@@ -183,7 +205,6 @@ export default function ReportPage() {
               </div>
             </div>
 
-            {/* YC SCORES */}
             <div className="data-section">
               <div className="section-label">YC EVALUATION FRAMEWORK</div>
               <div className="yc-scores">
@@ -194,7 +215,6 @@ export default function ReportPage() {
               </div>
             </div>
 
-            {/* NEXT STEP */}
             <div className="next-step-block">
               <div className="next-step-label">RECOMMENDED NEXT ACTION</div>
               <div className="next-step-text">› {yc.nextStep}</div>
@@ -202,7 +222,6 @@ export default function ReportPage() {
           </>
         )}
 
-        {/* FUNDING INSIGHTS */}
         {data?.fundingInsights && data.fundingInsights.totalDeals > 0 && (
           <div className="data-section">
             <div className="section-label">FUNDING INTELLIGENCE</div>
@@ -227,7 +246,6 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* SIMILAR STARTUPS */}
         {data?.similarStartups && data.similarStartups.length > 0 && (
           <div className="data-section">
             <div className="section-label">SIMILAR COMPANIES IN DATABASE</div>
@@ -250,7 +268,6 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* YC COMPANIES */}
         {data?.ycStartups && data.ycStartups.length > 0 && (
           <div className="data-section">
             <div className="section-label">Y COMBINATOR COMPANIES IN THIS SPACE</div>
@@ -269,7 +286,6 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* INVESTORS */}
         {data?.investors && data.investors.length > 0 && (
           <div className="data-section">
             <div className="section-label">INVESTORS ACTIVE IN THIS SPACE</div>
@@ -281,7 +297,6 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* PAY */}
         <div className="stripe-section">
           <div className="stripe-question">Will you pay for this?</div>
           <div className="stripe-sub">
@@ -294,7 +309,6 @@ export default function ReportPage() {
           <div className="stripe-badge">SECURED BY STRIPE · 256-BIT TLS</div>
         </div>
 
-        {/* SUPPORTERS */}
         <div className="supporters-section">
           <div className="supporters-header">
             <div className="supporters-title">VISIONARY SUPPORTERS OF THE FOUNDER</div>
