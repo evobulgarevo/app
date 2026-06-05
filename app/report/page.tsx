@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -72,7 +72,7 @@ function ScoreBar({ score, label, feedback }: { score: number; label: string; fe
   )
 }
 
-export default function ReportPage() {
+function ReportPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const analysisId = searchParams.get('id')
@@ -331,5 +331,13 @@ export default function ReportPage() {
       <Footer />
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={handleSupporterSuccess} />
     </>
+  )
+}
+
+export default function ReportPageWrapper() {
+  return (
+    <Suspense fallback={<div className="wrap"><div className="loading-state"><div className="loading-text">LOADING...</div></div></div>}>
+      <ReportPage />
+    </Suspense>
   )
 }
