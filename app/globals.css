@@ -50,7 +50,7 @@ nav {
 
 .logo {
   font-family: var(--font-vt323), 'VT323', monospace;
-  font-size: 36px;
+  font-size: 34px;
   color: var(--accent);
   cursor: pointer;
   letter-spacing: 2px;
@@ -62,12 +62,16 @@ nav {
 
 .logo-cursor {
   display: inline-block;
-  width: 3px;
-  height: 22px;
-  background: var(--accent);
-  margin-left: 2px;
-  vertical-align: middle;
   animation: logoCursorBlink 1.1s step-end infinite;
+  margin-left: 1px;
+  font-family: var(--font-vt323), 'VT323', monospace;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.logo-cursor::after {
+  content: '_';
 }
 
 @keyframes logoCursorBlink {
