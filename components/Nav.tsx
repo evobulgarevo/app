@@ -13,7 +13,6 @@ export default function Nav() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
@@ -33,18 +32,15 @@ export default function Nav() {
     || 'ACCOUNT'
 
   return (
-    <nav>
-      <div className="nav-inner">
-        <div className="logo" onClick={() => router.push('/')}>
-          BOFFO<span className="logo-cursor" />
-        </div>
+    <nav className="top-nav">
+      <div className="top-nav-logo" onClick={() => router.push('/')}>
+        BOFFO<span className="logo-cursor" />
+      </div>
 
+      <div className="top-nav-right">
         {user ? (
-          <div className="nav-user-menu" style={{ marginLeft: 'auto' }}>
-            <button
-              className="nav-cta"
-              onClick={() => setMenuOpen(o => !o)}
-            >
+          <div className="nav-user-menu">
+            <button className="nav-cta" onClick={() => setMenuOpen(o => !o)}>
               {displayName.toUpperCase()}
               <span style={{ marginLeft: 6, fontSize: 8, opacity: 0.5 }}>▾</span>
             </button>
@@ -53,15 +49,13 @@ export default function Nav() {
                 <div className="nav-menu-backdrop" onClick={() => setMenuOpen(false)} />
                 <div className="nav-dropdown">
                   <div className="nav-dropdown-email">{user.email}</div>
-                  <button className="nav-dropdown-item" onClick={handleSignOut}>
-                    SIGN OUT
-                  </button>
+                  <button className="nav-dropdown-item" onClick={handleSignOut}>SIGN OUT</button>
                 </div>
               </>
             )}
           </div>
         ) : (
-          <button className="nav-cta" style={{ marginLeft: 'auto' }} onClick={() => router.push('/login')}>
+          <button className="nav-cta" onClick={() => router.push('/login')}>
             SIGN UP / LOGIN
           </button>
         )}

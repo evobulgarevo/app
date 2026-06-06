@@ -48,11 +48,12 @@ export default function IdeasPage() {
   }
 
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <div className="main-shell page-enter">
-        <div className="main-shell-nav"><Nav /></div>
-        <div className="main-content">
+    <div className="page-shell">
+      <Nav />
+      <div className="page-body">
+        <Sidebar />
+        <div className="main-col">
+          <div className="main-content">
           <div className="ideas-shell">
 
             <div className="ideas-header">
@@ -113,8 +114,9 @@ export default function IdeasPage() {
 
           </div>
         </div>
-        <div className="main-shell-footer"><Footer /></div>
+        </div>
       </div>
+      <Footer />
     </div>
   )
 }
